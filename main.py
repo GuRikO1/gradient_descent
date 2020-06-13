@@ -17,8 +17,8 @@ b = np.dot(A, w_hat) + np.random.randn(N, 1) / (N * M)
 
 
 def func(w):
-    c = b - np.dot(A, w)
-    return np.dot(c.T, c)
+    norm = np.linalg.norm(b - np.dot(A, w))
+    return norm * norm
 
 
 def diffunc(w):
@@ -38,4 +38,4 @@ def gradient_discent():
 
 
 if __name__ == "__main__":
-    
+    gradient_discent() 

@@ -2,80 +2,77 @@ import numpy as np
 import time
 
 
-M = 200
-N = 300
-eps = 1e-5
+class Minimize:
+    def __init__(self, A, x_hat, eps=1e-5):
+        N, M = np.shape(A)
+        self.A = A
+        self.x_hat = x_hat
+        self.b = np.dot(A, x_hat) + np.random.randn(N, 1) * np.linalg.norm(A) * 1e-5
+        self.fx_hat = self.func(self.x_hat)
+        self.eps = eps
+        self.AA = np.dot(A.T, A)
+        hesse = 2 * self.AA
+        lmd, _ = np.linalg.eig(hesse)
+        L = np.max(lmd)
+        self.alpha = 1 / L
 
-A = np.random.rand(N, M)
-AA = np.dot(A.T, A)
-hesse = 2 * AA
-lmd, _ = np.linalg.eig(hesse)
+    def func(self, x):
+        norm = np.linalg.norm(self.b - np.dot(self.A, x))
+        return norm * norm
 
-L = np.max(lmd)
-alpha = 1 / L
-x_hat = np.ones((M, 1))
-b = np.dot(A, x_hat) + np.random.randn(N, 1) / N
+    def diffunc(self, x):
+        return 2 * np.dot(self.AA, x) - 2 * np.dot((self.A).T, self.b)
 
+    def gradient_discent(self, x):
+        fx = self.func(x)
+        while abs(fx - self.fx_hat) > self.eps:
+            x = x - self.alpha * self.diffunc(x)
+            fx = self.func(x)
 
-def func(x):
-    norm = np.linalg.norm(b - np.dot(A, x))
-    return norm * norm
-
-
-def diffunc(x):
-    return 2 * np.dot(AA, x) - 2 * np.dot(A.T, b)
-
-
-def gradient_discent(x):
-    fx_hat = func(x_hat)
-    fx = func(x)
-    while abs(fx - fx_hat) > eps:
-        x = x - alpha * diffunc(x)
-        fx = func(x)
-
-
-def polyak_momentum(x):
-    fx_hat = func(x_hat)
-    fx = func(x)
-    prev_x = x
-    k = 0
-    while abs(fx - fx_hat) > eps:
-        beta = k / (k + 3)
-        k += 1
-        tmp = x
-        x = x - alpha * diffunc(x) + beta * (x - prev_x)
-        prev_x = tmp
-        fx = func(x)
-
-
-def nesterov_acceleration(x):
-    fx_hat = func(x_hat)
-    fx = func(x)
-    y = x
-    k = 0
-    while abs(fx - fx_hat) > eps:
-        beta = k / (k + 3)
-        k += 1
+    def polyak_momentum(self, x):
+        fx = self.func(x)
         prev_x = x
-        x = y - alpha * diffunc(y)
-        y = x + beta * (x - prev_x)
-        fx = func(x)
+        k = 0
+        while abs(fx - self.fx_hat) > self.eps:
+            beta = k / (k + 3)
+            k += 1
+            tmp = x
+            x = x - self.alpha * self.diffunc(x) + beta * (x - prev_x)
+            prev_x = tmp
+            fx = self.func(x)
+
+    def nesterov_acceleration(self, x):
+        fx = self.func(x)
+        y = x
+        k = 0
+        while abs(fx - self.fx_hat) > self.eps:
+            beta = k / (k + 3)
+            k += 1
+            prev_x = x
+            x = y - self.alpha * self.diffunc(y)
+            y = x + beta * (x - prev_x)
+            fx = self.func(x)
 
 
 if __name__ == "__main__":
-    x = 1 + np.random.rand(M, 1) * 0.1
+    for M in [10, 50, 100, 200, 500, 800, 1000]:
+        N = int(M * 1.5)
+        A = np.random.rand(N, M)
+        x_hat = np.ones((M, 1))
+        minimize = Minimize(A, x_hat)
+        x = 1 + np.random.rand(M, 1) * 0.1
 
-    start = time.time()
-    gradient_discent(x)
-    t = time.time() - start
-    print('gradient_discent {} s'.format(t))
+        start = time.time()
+        minimize.gradient_discent(x)
+        t = time.time() - start
+        print('[(N, M) = ({}, {})] gradient_discent {} s'.format(N, M, t))
 
-    start = time.time()
-    polyak_momentum(x)
-    t = time.time() - start
-    print('polyak_momentum {} s'.format(t))
+        start = time.time()
+        minimize.polyak_momentum(x)
+        t = time.time() - start
+        print('[(N, M) = ({}, {})] polyak_momentum {} s'.format(N, M, t))
 
-    start = time.time()
-    nesterov_acceleration(x)
-    t = time.time() - start
-    print('nesterov_acceleration {} s'.format(t))
+        start = time.time()
+        minimize.nesterov_acceleration(x)
+        t = time.time() - start
+        print('[(N, M) = ({}, {})] nesterov_acceleration {} s'.format(N, M, t))

@@ -7,7 +7,7 @@ eps = 0.005
 
 A = np.random.rand(N, M)
 AA = np.dot(A.T, A)
-hesse = AA
+hesse = 2 * AA
 lmd, _ = np.linalg.eig(hesse)
 
 L = np.max(lmd)

@@ -38,7 +38,7 @@ def polyak_momentum(x):
     fx_hat = func(x_hat)
     fx = func(x)
     prev_x = x
-    k = 1
+    k = 0
     while abs(fx - fx_hat) > eps:
         beta = k / (k + 3)
         k += 1
@@ -52,7 +52,7 @@ def nesterov_acceleration(x):
     fx_hat = func(x_hat)
     fx = func(x)
     y = x
-    k = 1
+    k = 0
     while abs(fx - fx_hat) > eps:
         beta = k / (k + 3)
         k += 1

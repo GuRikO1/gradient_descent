@@ -13,7 +13,6 @@ lmd, _ = np.linalg.eig(hesse)
 
 L = np.max(lmd)
 alpha = 1 / L
-bete = M / (M + 3)
 x_hat = np.ones((M, 1))
 b = np.dot(A, x_hat) + np.random.randn(N, 1) / N
 
@@ -31,8 +30,7 @@ def gradient_discent(x):
     fx_hat = func(x_hat)
     fx = func(x)
     while abs(fx - fx_hat) > eps:
-        grad = -diffunc(x)
-        x = x + alpha * grad
+        x = x - alpha * diffunc(x)
         fx = func(x)
 
 
@@ -40,24 +38,28 @@ def polyak_momentum(x):
     fx_hat = func(x_hat)
     fx = func(x)
     prev_x = x
+    k = 1
     while abs(fx - fx_hat) > eps:
+        beta = k / (k + 3)
+        k += 1
         tmp = x
-        x = x - alpha * diffunc(x) + bete * (x - prev_x)
+        x = x - alpha * diffunc(x) + beta * (x - prev_x)
         prev_x = tmp
         fx = func(x)
-        print(fx, fx_hat)
 
 
 def nesterov_acceleration(x):
     fx_hat = func(x_hat)
     fx = func(x)
     y = x
+    k = 1
     while abs(fx - fx_hat) > eps:
+        beta = k / (k + 3)
+        k += 1
         prev_x = x
         x = y - alpha * diffunc(y)
-        y = x + bete * (x - prev_x)
+        y = x + beta * (x - prev_x)
         fx = func(x)
-        print(fx, fx_hat)
 
 
 if __name__ == "__main__":
